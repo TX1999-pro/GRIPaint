@@ -1,146 +1,178 @@
-using System.Collections;
-using System.Linq;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class LineManager : MonoBehaviour
 {
-    public GameObject linePrefab;  // The prefab to use for the line
-    public float lineDrawSpeed = 20f;  // The speed at which the line is drawn
-    public float minDistance = 0.1f;  // The minimum distance between two points to draw a line
+    #region public
 
-    private GameObject currentLine;  // The current line being drawn
-    private LineRenderer lineRenderer;  // The LineRenderer component of the current line
-    private EdgeCollider2D edgeCollider;  // The EdgeCollider2D component of the current line
-    private Vector2 lastMousePosition;  // The last mouse position recorded
-    private bool isErasing = false;  // Flag to indicate if eraser mode is active
-    private int eraseSegmentIndex = -1;  // The index of the line segment to be erased
+    public GameObject linePrefab;
+    public Transform drawnPicture;
+    public DrawingBounds m_Bounds;
+    public bool isDrawing;
+    public bool inDrawingBounds;
+    public Vector2 m_Mouse;
+
+    #endregion
+
+    #region private
+
+    private Coroutine drawing;
+    private Coroutine erasing;
+
+    [SerializeField] private bool isErasing;
+
+    private int sortOrder=0;
+
+    #endregion
+    private void Start()
+    {
+        inDrawingBounds = false;
+        isDrawing = false;
+        m_Bounds = FindObjectOfType<DrawingBounds>();
+    }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        //m_Mouse = Input.mousePosition;
+        //inDrawingBounds = CheckBounds(m_Mouse); 
+        inDrawingBounds = IsPointerOverUIObject();
+        if (inDrawingBounds && isDrawing)
         {
-            if (!isErasing)
+            if (Input.GetMouseButtonDown(0))
             {
-                CreateNewLine();
+                StartDraw();
             }
-            else
+            else if (Input.GetMouseButtonUp(0))
             {
-                CheckEraseSegment();
+                EndDraw();
             }
-        }
-
-        if (currentLine != null)
+        } else if (inDrawingBounds && isErasing)
         {
-            if (!isErasing)
+            if (Input.GetMouseButtonDown(0))
             {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-                if (Vector2.Distance(mousePosition, lastMousePosition) > minDistance)
-                {
-                    StartCoroutine(DrawLine(mousePosition));
-                }
+                StartErase();
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                EndErase();
             }
         }
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            isErasing = true;
-        }
-
-        if (Input.GetMouseButtonUp(1))
-        {
-            isErasing = false;
-            eraseSegmentIndex = -1;
-        }
     }
 
-    void CreateNewLine()
+    public static bool IsPointerOverUIObject()
     {
-        currentLine = Instantiate(linePrefab, Vector3.zero, Quaternion.identity);
-        lineRenderer = currentLine.GetComponent<LineRenderer>();
-        edgeCollider = currentLine.GetComponent<EdgeCollider2D>();
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+        foreach (RaycastResult r in results)
+            if (r.gameObject.CompareTag("Bounds"))
+                return true;
 
-        lastMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        lineRenderer.SetPosition(0, lastMousePosition);
-        lineRenderer.positionCount = 1;
-        edgeCollider.points = new Vector2[] { lastMousePosition, lastMousePosition };
+        return false;
     }
 
-    IEnumerator DrawLine(Vector2 toPosition)
+    private bool CheckBounds(Vector2 mousePosition)
     {
-        float distance = Vector2.Distance(lastMousePosition, toPosition);
-        float drawTime = distance / lineDrawSpeed;
 
-        float t = 0f;
-        while (t < 1f)
+        RectTransform boundary = m_Bounds.m_RectTransform;
+        Vector2 localMousePosition = boundary.InverseTransformPoint(mousePosition);
+        Debug.Log(boundary.rect.Contains(localMousePosition));
+        return boundary.rect.Contains(localMousePosition);
+        
+
+    }
+    #region drawing
+    void StartDraw()
+    {
+        if (drawing != null) //why?
         {
-            t += Time.deltaTime / drawTime;
-            Vector2 currentPosition = Vector2.Lerp(lastMousePosition, toPosition, t);
-            lineRenderer.positionCount++;
-            lineRenderer.SetPosition(lineRenderer.positionCount - 1, currentPosition);
+            StopCoroutine(drawing);
+        }
 
-            Vector2[] colliderPoints = edgeCollider.points;
-            colliderPoints[colliderPoints.Length - 1] = currentPosition;
-            edgeCollider.points = colliderPoints;
+        drawing = StartCoroutine(Drawing());
 
+    }
+    IEnumerator Drawing()
+    {
+
+        isDrawing = true;
+        GameObject lineObject = Instantiate(linePrefab, new Vector3(0, 0, 0), Quaternion.identity, drawnPicture);
+        //lineObject.transform.SetAsFirstSibling(); // new line object appear on top
+        LineRenderer line = lineObject.GetComponent<LineRenderer>();
+        line.sortingLayerName = "Top";
+        line.sortingOrder = sortOrder;
+        sortOrder += 1; // later lines will be rendered on top of older ones
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.positionCount = 0;
+
+        while (isDrawing)
+        {
+            Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            position.z = 0;
+            line.positionCount++;
+            line.SetPosition(line.positionCount - 1, position);
             yield return null;
         }
-
-        lastMousePosition = toPosition;
     }
 
-    void CheckEraseSegment()
+    public void EndDraw()
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        int segmentIndex = GetSegmentIndexAtPoint(mousePosition);
-
-        if (segmentIndex != -1 && segmentIndex != eraseSegmentIndex)
+        if (drawing != null)
         {
-            eraseSegmentIndex = segmentIndex;
-            lineRenderer.positionCount--;
-            Vector2[] colliderPoints = edgeCollider.points;
-            colliderPoints = colliderPoints.Where((val, index) => index != eraseSegmentIndex && index != eraseSegmentIndex + 1).ToArray();
-            edgeCollider.points = colliderPoints;
-        }
-    }
-
-    int GetSegmentIndexAtPoint(Vector2 point)
-    {
-        if (lineRenderer.positionCount < 2)
-        {
-            return -1;
+            StopCoroutine(drawing);
         }
 
-        for (int i = 0; i < lineRenderer.positionCount - 1; i++)
-        {
-            Vector2 segmentStart = lineRenderer.GetPosition(i);
-            Vector2 segmentEnd = lineRenderer.GetPosition(i + 1);
-
-            if (Vector2.Distance(point, segmentStart) < minDistance)
-            {
-                return i;
-            }
-            else
-            {
-                float segmentLength = Vector2.Distance(segmentStart, segmentEnd);
-                float distanceToSegmentStart = Vector2.Distance(point, segmentStart);
-                float distanceToSegmentEnd = Vector2.Distance(point, segmentEnd);
-
-                if (distanceToSegmentStart + distanceToSegmentEnd - segmentLength < minDistance)
-                {
-                    return i;
-                }
-            }
-        }
-
-        return -1;
+        //isDrawing = false;
     }
+    #endregion
 
-    public void ClearLines()
+    #region erase / clear
+    void StartErase()
     {
-        Destroy(currentLine);
-        currentLine = null;
-        lineRenderer = null;
-        edgeCollider = null;
+        if (erasing != null)
+        {
+            StopCoroutine(erasing);
+        }
+        erasing = StartCoroutine(Erasing());
+
     }
+    void EndErase()
+    {
+        StopCoroutine(drawing);
+        isErasing = false;
+    }
+
+ 
+
+    IEnumerator Erasing()
+    {
+        isErasing = true;
+
+        while (isErasing)
+        {
+            yield return null;
+        }
+    }
+    #endregion
+    //#region event handler
+    //public void OnPointerEnter(PointerEventData eventData)
+    //{
+    //    Debug.Log("On UI Element");
+    //    EndDraw();
+    //    isDrawing = false;
+    //}
+
+    //public void OnPointerExit(PointerEventData eventData)
+    //{
+    //    if (enableDrawingToggle == true)
+    //    {
+    //        Debug.Log("You can draw now");
+    //        isDrawing = true;
+    //    }
+    //}
+    //#endregion
 }

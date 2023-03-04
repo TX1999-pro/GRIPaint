@@ -12,6 +12,8 @@ public class onMouseHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public Vector3 rotationAngle = new(0, 0, 8);
 
+    public bool onUIelement = true;
+
 
     void Start()
     {
@@ -21,8 +23,6 @@ public class onMouseHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         //Set target position and rotation
         targetPos = m_RectTransform.position + displacement;
 
-
-
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -30,7 +30,8 @@ public class onMouseHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         Debug.Log("Entered the Paint Palettee");
         m_RectTransform.position = targetPos;
         m_RectTransform.Rotate(rotationAngle);
-
+        onUIelement = true;
+        FindObjectOfType<LineManager>().EndDraw();
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -38,6 +39,7 @@ public class onMouseHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         Debug.Log("left Paint Palettee");
         m_RectTransform.position = initPos;
         m_RectTransform.Rotate(-rotationAngle);
+        onUIelement = false;
 
     }
 }
