@@ -34,7 +34,7 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     #region PointerEvents
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("Entered the" + this.transform.name);
+        //Debug.Log("Entered the" + this.transform.name);
         m_RectTransform.position = targetPos;
 
         FindObjectOfType<LineManager>().EndDraw();
@@ -43,7 +43,7 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        Debug.Log("left the" + this.transform.name);
+        //Debug.Log("left the" + this.transform.name);
         if (!isSelected)
         {
             // Transform return to initial position
@@ -54,7 +54,7 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnSelect(BaseEventData eventData)
     {
-        Debug.Log(this.gameObject.name + " was selected");
+        //Debug.Log(this.gameObject.name + " was selected");
         m_RectTransform.position = targetPos;
         isSelected = true;
         // set the cursor to the current selected object icon
@@ -65,7 +65,7 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnDeselect(BaseEventData eventData)
     {
-        Debug.Log(this.gameObject.name + " was Deselected");
+        //Debug.Log(this.gameObject.name + " was Deselected");
         m_RectTransform.position = initPos;
         isSelected = false;
 

@@ -38,26 +38,35 @@ public class LineManager : MonoBehaviour
         //m_Mouse = Input.mousePosition;
         //inDrawingBounds = CheckBounds(m_Mouse); 
         inDrawingBounds = IsPointerOverUIObject();
-        if (inDrawingBounds && isDrawing)
+        if (inDrawingBounds)
         {
-            if (Input.GetMouseButtonDown(0))
+            if (isDrawing)
             {
-                StartDraw();
+                if (Input.GetMouseButtonDown(0))
+                {
+                    StartDraw();
+                }
+                else if (!inDrawingBounds || Input.GetMouseButtonUp(0))
+                {
+                    EndDraw();
+                }
             }
-            else if (Input.GetMouseButtonUp(0))
+            else if (isErasing)
             {
-                EndDraw();
+                if (Input.GetMouseButtonDown(0))
+                {
+                    StartErase();
+                }
+                else if (!inDrawingBounds || Input.GetMouseButtonUp(0))
+                {
+                    EndErase();
+                }
             }
-        } else if (inDrawingBounds && isErasing)
+        }
+        else
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                StartErase();
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                EndErase();
-            }
+            EndDraw();
+            EndErase();
         }
 
     }
@@ -131,6 +140,8 @@ public class LineManager : MonoBehaviour
     #endregion
 
     #region erase / clear
+
+    // not used?
     void StartErase()
     {
         if (erasing != null)
@@ -142,7 +153,11 @@ public class LineManager : MonoBehaviour
     }
     void EndErase()
     {
-        StopCoroutine(drawing);
+        if (drawing != null)
+        {
+            StopCoroutine(drawing);
+        }
+
         isErasing = false;
     }
 
