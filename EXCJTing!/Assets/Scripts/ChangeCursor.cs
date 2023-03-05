@@ -12,6 +12,8 @@ public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
 	public Button button;
 	public Image panel;
+
+	private bool selectedPaintTool;
 	private void Start()
 	{
 		//for (int i = 0; i < buttons.length; i++)
@@ -28,8 +30,11 @@ public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
 	private void OnButtonClicked()
 	{
-		// when clicked set the cursor to default
+		// for non-brush tools, when clicked set the cursor to default
 		Cursor.SetCursor(cursorSelect, hotSpot, cursorMode);
+
+		// turn the cursor to the desired Sprite and colour
+		selectedPaintTool = true;
 	}
 
 	public void OnPointerEnter(PointerEventData eventData)
@@ -38,7 +43,11 @@ public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 	}
 
 	public void OnPointerExit(PointerEventData eventData)
-    {
-		Cursor.SetCursor(cursorDefault, hotSpot, cursorMode);
+	{
+		if (!selectedPaintTool) // not selected
+		{
+			Cursor.SetCursor(cursorDefault, hotSpot, cursorMode);
+		}
+		// else just remain as the selected cursor
 	}
 }
