@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+	public Texture2D cursorHover;
 	public Texture2D cursorSelect;
 	public Texture2D cursorDefault;
 	public CursorMode cursorMode = CursorMode.ForceSoftware;
@@ -21,16 +22,19 @@ public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 		//	button.onclick.addlistener(() => onclick(index));
 		//	button.onpointerenter();
 		//}
+		button.onClick.AddListener(OnButtonClicked);
+
 	}
 
-	private void OnClick(int index)
+	private void OnButtonClicked()
 	{
-		Debug.Log("You click button at index: " + index);
+		// when clicked set the cursor to default
+		Cursor.SetCursor(cursorSelect, hotSpot, cursorMode);
 	}
 
 	public void OnPointerEnter(PointerEventData eventData)
 	{
-		Cursor.SetCursor(cursorSelect, hotSpot, cursorMode);
+		Cursor.SetCursor(cursorHover, hotSpot, cursorMode);
 	}
 
 	public void OnPointerExit(PointerEventData eventData)

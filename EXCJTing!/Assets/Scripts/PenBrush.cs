@@ -12,15 +12,20 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public Vector2 targetPos;
     public LineManager _lineManager;
     [SerializeField] private GameObject brushType;
-
-    
+      
     
     private bool isSelected = false;
+
+    private void Awake()
+    {
+        _lineManager = FindObjectOfType<LineManager>();
+    }
     void Start()
     {
 
         //Fetch the RectTransform from the GameObject
         m_RectTransform = GetComponent<RectTransform>();
+
         initPos = m_RectTransform.position;
         //Set target position
         targetPos = m_RectTransform.position + displacement;
