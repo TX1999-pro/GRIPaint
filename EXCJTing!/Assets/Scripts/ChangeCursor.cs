@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Button))]
 public class ChangeCursor : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
 	public Texture2D cursorHover;
