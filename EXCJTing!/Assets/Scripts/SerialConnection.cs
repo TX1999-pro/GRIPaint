@@ -3,96 +3,124 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO.Ports;
+using System.IO;
 
 public class SerialConnection : MonoBehaviour
 {
-    private SerialPort sp;
-    public string recievedData;
-    public static float forceValue;
+    public GameManager gameManager;
+    private SerialPort port;
+    public string receivedData;
+    public bool ArduinoButtonDown;
+    public string[] datas;
 
-    public static bool sendHapticPI;
+    private const int BAUD_RATE = 9600;
 
-    private PainManager painScript;
-    private PainPoint painPoint;
-
-    private float relPIHaptic;
-    private string writeRelativePIHaptic;
-
-    public int readTimeOutTime = 20;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        string the_com = "";
-
-        //change COM and baude rate here
-        sp = new SerialPort("COM4", 9600);
-
-
-        if (!sp.IsOpen)
-        {
-            print("Opening " + the_com + ", baud 9600");
-            sp.Open();
-            sp.Handshake = Handshake.None;
-            if (sp.IsOpen) { print("Open"); }
-
-            sp.ReadTimeout = readTimeOutTime;
-        }
-    }
+    public int readTimeOutTime = 50;
 
     private void OnEnable()
     {
-        GameManager.OnNewPainPointRequired += assignNewPainPoint;
+        port = new SerialPort("COM6", 9600);
+        if (!port.IsOpen)
+        {
+            //print("Opening " + the_com + ", baud 9600");
+            port.Open();
+            //port.Handshake = Handshake.None;
+            //port.DtrEnable = true;
+            //port.RtsEnable= true;
+            if (port.IsOpen) { Debug.Log("opening port on Awark"); }
+
+            port.ReadTimeout = readTimeOutTime;
+        }
     }
 
     private void OnDisable()
     {
-        GameManager.OnNewPainPointRequired -= assignNewPainPoint;
+        port.Close();
     }
-
-    public void assignNewPainPoint(float x, float y)
+    private void Start()
     {
-        painPoint = PainManager.painPoint;
-    }
+        gameManager = FindObjectOfType<GameManager>();
 
-    // Update is called once per frame
-    void Update()
+        if (!port.IsOpen)
+        {
+            //print("Opening " + the_com + ", baud 9600");
+            port.Open();
+            port.ReadTimeout = readTimeOutTime;
+            Debug.Log("opening port on start");
+        }
+
+
+    }
+    private void Update()
     {
-        try
-        {
-            recievedData = sp.ReadLine();
-            recievedData = recievedData.Replace(".", ",");
-            if (float.TryParse(recievedData, out forceValue))
-            {
-            }
-            else
-            {
-                Debug.Log("Parsing failed");
-            }
+        //if (port != null)
+        //{
+        //    receivedString = port.ReadLine();
 
-            //Send HapticPI to arduino
-            if (sendHapticPI == true)
-            {
-                relPIHaptic = painPoint.relativePIHaptic / 100;
-                writeRelativePIHaptic = relPIHaptic.ToString("0.00");
-                Debug.Log("relPIHaptic =" + writeRelativePIHaptic);
-                sp.WriteLine(writeRelativePIHaptic);
-            }
-        }
-        catch
+        //    string[] datas = receivedString.Split(',');
+        //    bool isParsable = Int32.TryParse(datas[0], out int number);
+        //    gameManager.FSR_Value = number;
+        //}
+
+        if (port.IsOpen)
         {
-            if (sendHapticPI == true)
+            try
             {
-                relPIHaptic = painPoint.relativePIHaptic / 100;
-                writeRelativePIHaptic = relPIHaptic.ToString("0.00");
-                Debug.Log("relPIHaptic =" + writeRelativePIHaptic);
-                sp.WriteLine(writeRelativePIHaptic);
+                receivedData = port.ReadLine();
+                Debug.Log(receivedData);
+                if (receivedData == "0")
+                {
+                    print("Button Down");
+                    ArduinoButtonDown = false;
+                }
+                if (receivedData == "1")
+                {
+                    print("Button Up");
+                    ArduinoButtonDown = true;
+                }
             }
+            catch (Exception)
+            {
+                //
+            }
+            
+                
+                // gameObject.FSRValue = TryParse(receivedData);
+  
+
+            //if (!string.IsNullOrEmpty(FSRdata)) // if there is data
+            //{
+
+            //    print(FSRdata);
+                //string[] datas = receivedString.Split(',');
+                //bool isParsable = Int32.TryParse(datas[0], out int number);
+                //gameManager.FSR_Value = number;
+                //char command = data.ToCharArray()[data.Length - 1]; // read the last string
+                //bool pressed = (command == '1'); // reading from serial port is string
+                //gameManager.isButtonPressed = pressed; // update gameManager state
+                //print("Button pressed from serial port");
+            //}
         }
     }
 
+    //private void OnGUI()
+    //{
+    //    if(port== null)
+    //    {
+    //        foreach(string portName in SerialPort.GetPortNames())
+    //        {
+    //            if(GUILayout.Button(portName))
+    //            {
+    //                port = new SerialPort(portName, BAUD_RATE);
+    //                port.Open();
+    //                print("Opening " + portName + "with baud" + BAUD_RATE);
+    //                port.ReadTimeout = 20; // pause for 20 ms
+    //            }
+    //        }
+    //    }
+    //}
     private void OnApplicationQuit()
     {
-        sp.Close();
+        port?.Close(); // if not null then close
     }
 }
