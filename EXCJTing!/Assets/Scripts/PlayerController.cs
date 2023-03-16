@@ -11,8 +11,9 @@ public class PlayerController : MonoBehaviour
     // this is the virtual mouse
     public Vector3 targetPosition;
     public int playerSpeed;
-    public bool isbuttonPressed;
-    public bool isbuttonHeld;
+    public bool isButtonPressed;
+    public bool virtualMouseDown;
+    public bool virtualMouseUp;
 
     public CustomInputModule customInputModule;
     public KeyCode simulateClickKey = KeyCode.Space;
@@ -35,7 +36,11 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         player = GetComponent<RectTransform>();
-        //offset = new Vector3(-6.65f,5f,0f);
+
+        isButtonPressed = false;
+        virtualMouseDown = false;
+
+
         address_1 = "/mouse/position";
         address_2 = "/gripper/button/state"; // true/false
         // get the receiver
@@ -50,20 +55,28 @@ public class PlayerController : MonoBehaviour
         //targetPosition = Camera.main.ScreenToWorldPoint(new Vector3(mouse_x, mouse_y, 0));
         targetPosition = new Vector3(mouse_x, mouse_y, 0);
         player.position = Vector3.MoveTowards(player.position, targetPosition, playerSpeed * Time.deltaTime);
-        if (isbuttonPressed == true)
+
+        if (Input.GetKeyDown(KeyCode.M)) // simulate virtualMousePressedDown only
         {
-            customInputModule.simulateMouseClick = true;
-            isbuttonPressed = false; // turn it off
-        }
-        if (Input.GetKeyDown(simulateMouseDownKey))
-        {
-            isbuttonHeld = true;
+            virtualMouseUp = false;
             customInputModule.simulateMouseDown = true;
         }
-        else
+
+        if (isButtonPressed == true)
         {
-            isbuttonHeld = false;
+            customInputModule.simulateMouseDown = true;
+            virtualMouseDown = true;
+            virtualMouseUp = false;
+            ///isButtonPressed = false; // turn it off
         }
+        ////////////////////////////////////////////
+        if (isButtonPressed == false && virtualMouseDown == true) // stop holding
+        {
+            virtualMouseDown = false;
+            virtualMouseUp = true;
+            customInputModule.simulateMouseClick = true;
+        }
+        ////////////////////////////////////////////
     }
 
     void PositionMessageReceived(OSCMessage message)
@@ -90,11 +103,11 @@ public class PlayerController : MonoBehaviour
             Debug.Log(value);
             if (value == "0")
             {
-                isbuttonPressed = false;
+                isButtonPressed = false;
             }
             if (value == "1")
             {
-                isbuttonPressed = true;
+                isButtonPressed = true;
             }
 
         }

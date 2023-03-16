@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class DrawingBounds : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class DrawingBounds : MonoBehaviour//, IPointerEnterHandler, IPointerExitHandler
 {
 
     public RectTransform m_RectTransform;
@@ -15,19 +15,19 @@ public class DrawingBounds : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        Debug.Log("Entered the Drawing bounds");
+    //public void OnPointerEnter(PointerEventData eventData)
+    //{
+    //    Debug.Log("Entered the Drawing bounds");
 
-        FindObjectOfType<LineManager>().inDrawingBounds = true;
-    }
+    //    FindObjectOfType<DrawingController>().inDrawingBounds = true;
+    //}
 
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        Debug.Log("Left the Drawing bounds");
+    //public void OnPointerExit(PointerEventData eventData)
+    //{
+    //    Debug.Log("Left the Drawing bounds");
 
-        FindObjectOfType<LineManager>().inDrawingBounds = false;
-        FindObjectOfType<LineManager>().EndDraw();
+    //    FindObjectOfType<DrawingController>().inDrawingBounds = false;
+    //    FindObjectOfType<DrawingController>().EndDraw();
 
-    }
+    //}
 }

@@ -6,6 +6,9 @@ using Button = UnityEngine.UI.Button;
 
 public class ButtonClickDetector : MonoBehaviour
 {
+    /// <summary>
+    /// ButtonClick Detector can be attached to the canvas, or as a stand-alone game object
+    /// </summary>
     public Button button1;
     public Button button2;
     public Button button3;
@@ -26,7 +29,7 @@ public class ButtonClickDetector : MonoBehaviour
     {
         if (buttonPressed == button1)
         {
-            //Your code for button 1
+            //Your code for button 1. E.g. switch UI canvas
             DisplayMessage(textbox1);
             Debug.Log("Clicked: " + button1.name);
         }

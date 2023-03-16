@@ -16,7 +16,11 @@ public class CustomInputModule : StandaloneInputModule
     }
     public override void Process()
     {
-        if (simulateMouseClick)
+        if (simulateMouseDown)
+        {
+            ProcessSimulatedMouseDown();
+        }
+        else if (simulateMouseClick)
         {
             ProcessSimulatedMouseClick();
         }
@@ -41,7 +45,7 @@ public class CustomInputModule : StandaloneInputModule
         GameObject target = null;
         foreach (RaycastResult result in raycastResults)
         {
-            if (result.gameObject.GetComponent<Button>() != null)
+            if (result.gameObject.GetComponent<Button>() != null) // check the first button
             {
                 target = result.gameObject;
                 //Debug.Log(result.gameObject.name);
@@ -51,9 +55,44 @@ public class CustomInputModule : StandaloneInputModule
 
         if (target != null)
         {
-            ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.ExecuteHierarchy(target, eventData, ExecuteEvents.pointerUpHandler);
+            ExecuteEvents.ExecuteHierarchy(target, eventData, ExecuteEvents.pointerClickHandler);
         }
 
         simulateMouseClick = false;
+    }
+
+    private void ProcessSimulatedMouseDown()
+    {
+        PointerEventData eventData = CreatePointerEventData();
+        
+        List<RaycastResult> raycastResults = new List<RaycastResult>();
+        eventSystem.RaycastAll(eventData, raycastResults);
+        GameObject target = null;
+        foreach (RaycastResult result in raycastResults)
+        {
+            if (result.gameObject.GetComponent<Button>() != null) // check the first button
+            {
+                target = result.gameObject;
+                //Debug.Log(result.gameObject.name);
+                break;
+            }
+        }
+
+        if (target != null)
+        {
+            ExecuteEvents.ExecuteHierarchy(target, eventData, ExecuteEvents.pointerDownHandler);
+        }
+
+        simulateMouseDown = false;
+    }
+    private PointerEventData CreatePointerEventData()
+    {
+        PointerEventData eventData = new PointerEventData(eventSystem)
+        {
+            position = playerController.player.position,
+            button = PointerEventData.InputButton.Left
+        };
+        return eventData;
     }
 }
