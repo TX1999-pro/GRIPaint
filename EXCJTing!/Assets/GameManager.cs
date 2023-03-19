@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// this code is not working with virtual cursor.
 public class GameManager : MonoBehaviour
 {
     public GameObject _DrawingContainer;

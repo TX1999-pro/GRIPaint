@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System;
 
+// this code is not used.
 public class VirtualCursor : MonoBehaviour
 {
     public bool mouseClicked = false;
@@ -43,6 +44,7 @@ public class VirtualCursor : MonoBehaviour
             m_Raycaster.Raycast(m_PointerEventData, results);
 
             Debug.Log(results[3].gameObject.name);
+
             //For every result returned, output the name of the GameObject on the Canvas hit by the Ray
             //for (int i = 0; i < results.Count; i++)
             //{

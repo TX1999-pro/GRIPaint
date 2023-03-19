@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
-using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class DrawingController : MonoBehaviour
 {
@@ -39,7 +39,7 @@ public class DrawingController : MonoBehaviour
     void Update()
     {
         m_Mouse = m_VirtualMouse.player.position;
-        //inDrawingBounds = CheckBounds(m_Mouse); 
+        inDrawingBounds = CheckBounds(m_Mouse); 
         //inDrawingBounds = IsPointerOverUIObject();
         if (inDrawingBounds)
         {
@@ -81,15 +81,19 @@ public class DrawingController : MonoBehaviour
 
         RectTransform boundary = m_Bounds.m_RectTransform;
         Vector2 localMousePosition = boundary.InverseTransformPoint(mousePosition);
-        Debug.Log(boundary.rect.Contains(localMousePosition));
-        return boundary.rect.Contains(localMousePosition);
-
+        //  Debug.Log(boundary.rect.Contains(localMousePosition));
+        // if not on UI elements
+        if (boundary.rect.Contains(localMousePosition))
+        {
+            return true;
+        }
+        return false;
 
     }
     #region drawing
     void StartDraw()
     {
-        if (drawing != null) //why?
+        if (drawing != null) //the coroutine should not be empty
         {
             StopCoroutine(drawing);
         }
@@ -111,6 +115,9 @@ public class DrawingController : MonoBehaviour
         sortOrder += 1; // later lines will be rendered on top of older ones
         line.material = new Material(Shader.Find("Sprites/Default"));
         line.positionCount = 0;
+
+        line.startColor = ColorPicker.SelectedColor;
+        line.endColor = ColorPicker.SelectedColor;
 
         while (isDrawing)
         {

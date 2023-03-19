@@ -2,13 +2,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
 public class CustomInputModule : StandaloneInputModule
 {
+// this is attached to the EventSystem
     public bool simulateMouseClick = false;
     public bool simulateMouseDown = false;
+    public bool isHoveringOverButton = false;
+
+    public Image cursorSpriteImage;
+    public Sprite defaultCursorSprite;
+    public Sprite hoverCursorSprite;
 
     public PlayerController playerController;
+    private GameObject lastHoveredButton = null;
 
     protected override void Start()
     {
@@ -16,6 +24,8 @@ public class CustomInputModule : StandaloneInputModule
     }
     public override void Process()
     {
+        isHoveringOverButton = ProcessSimulatedMouseHover();
+
         if (simulateMouseDown)
         {
             ProcessSimulatedMouseDown();
@@ -95,4 +105,40 @@ public class CustomInputModule : StandaloneInputModule
         };
         return eventData;
     }
+
+    private bool ProcessSimulatedMouseHover()
+    {
+        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        {
+            position = playerController.player.position
+        };
+
+        List<RaycastResult> raycastResults = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, raycastResults);
+        GameObject target = null;
+        bool isOverButton = false;
+        foreach (RaycastResult result in raycastResults)
+        {
+            if (result.gameObject.GetComponent<Button>() != null)
+            {
+                target = result.gameObject;
+                isOverButton = true;
+
+                break;
+            }
+        }
+
+        if (target != null)
+        {
+            ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerEnterHandler);
+            return isOverButton;
+        }
+        else if (!isOverButton)
+        {
+            ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerExitHandler);
+        }
+
+        return isOverButton;
+    }
 }
+

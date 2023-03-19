@@ -8,9 +8,8 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public RectTransform m_RectTransform;
     public Vector2 initPos;
-    public Vector3 displacement = new Vector3(0, -60, 0);
-    public Vector2 targetPos;
-    public LineManager _lineManager;
+    public Vector3 displacement = new Vector3(0, -60f, 0);
+    public DrawingController _drawingController;
     [SerializeField] private GameObject brushType;
       
     
@@ -18,7 +17,7 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     private void Awake()
     {
-        _lineManager = FindObjectOfType<LineManager>();
+        _drawingController = FindObjectOfType<DrawingController>();
     }
     void Start()
     {
@@ -27,8 +26,6 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         m_RectTransform = GetComponent<RectTransform>();
 
         initPos = m_RectTransform.position;
-        //Set target position
-        targetPos = m_RectTransform.position + displacement;
 
         
     }
@@ -39,10 +36,13 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     #region PointerEvents
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //Debug.Log("Entered the" + this.transform.name);
-        m_RectTransform.position = targetPos;
+        if (!isSelected)
+        {
+            //Debug.Log("Entered the" + this.transform.name);
+            m_RectTransform.position += displacement;
 
-        FindObjectOfType<LineManager>().EndDraw();
+            FindObjectOfType<DrawingController>().EndDraw();
+        }
 
     }
 
@@ -60,12 +60,12 @@ public class PenBrush : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnSelect(BaseEventData eventData)
     {
         //Debug.Log(this.gameObject.name + " was selected");
-        m_RectTransform.position = targetPos;
+        m_RectTransform.position += displacement;
         isSelected = true;
         // set the cursor to the current selected object icon
         // update the selectedItem for lineManager
-        FindObjectOfType<LineManager>().linePrefab = brushType;
-        FindObjectOfType<LineManager>().isDrawing = true;
+        FindObjectOfType<DrawingController>().linePrefab = brushType;
+        FindObjectOfType<DrawingController>().isDrawing = true;
     }
 
     public void OnDeselect(BaseEventData eventData)

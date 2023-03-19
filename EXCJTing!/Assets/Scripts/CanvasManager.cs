@@ -17,8 +17,8 @@ public enum CanvasType
 public class CanvasManager : MonoBehaviour//Singleton<CanvasManager>
 {
 
-    List<CanvasController> canvasControllerList;
-    CanvasController lastActiveCanvas;
+    public List<CanvasController> canvasControllerList;
+    public CanvasController lastActiveCanvas;
 
     private void Awake()
     {
