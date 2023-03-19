@@ -116,29 +116,64 @@ public class CustomInputModule : StandaloneInputModule
         List<RaycastResult> raycastResults = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, raycastResults);
         GameObject target = null;
-        bool isOverButton = false;
+
         foreach (RaycastResult result in raycastResults)
         {
             if (result.gameObject.GetComponent<Button>() != null)
             {
                 target = result.gameObject;
-                isOverButton = true;
-
                 break;
             }
         }
-
-        if (target != null)
+        //
+        if (target != null && target != lastHoveredButton)
         {
+            if (lastHoveredButton != null)
+            {
+                ExecuteEvents.ExecuteHierarchy(lastHoveredButton, pointerData, ExecuteEvents.pointerExitHandler);
+            }
             ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerEnterHandler);
-            return isOverButton;
+            cursorSpriteImage.sprite = hoverCursorSprite;
+            lastHoveredButton = target;
+            return true;
         }
-        else if (!isOverButton)
+        else if (target == null && lastHoveredButton != null)
         {
-            ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerExitHandler);
+            ExecuteEvents.ExecuteHierarchy(lastHoveredButton, pointerData, ExecuteEvents.pointerExitHandler);
+            cursorSpriteImage.sprite = defaultCursorSprite;
+            lastHoveredButton = null;
+            return false;
         }
+        return target != null;
+        //if (target != null && target != lastHoveredButton)
+        //{
+        //    // bug not fixed yet...
+        //    if (lastHoveredButton != null && !target.transform.IsChildOf(lastHoveredButton.transform) && !lastHoveredButton.transform.IsChildOf(target.transform))
+        //    {
+        //        ExecuteEvents.ExecuteHierarchy(lastHoveredButton, pointerData, ExecuteEvents.pointerExitHandler);
+        //    }
 
-        return isOverButton;
+        //    if (lastHoveredButton == null)
+        //    {
+        //        ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerEnterHandler);
+        //    } 
+        //    else if (!target.transform.IsChildOf(lastHoveredButton.transform))
+        //    {
+        //        ExecuteEvents.ExecuteHierarchy(target, pointerData, ExecuteEvents.pointerEnterHandler); // when do we want to execute?
+        //    }
+        //    lastHoveredButton = target;
+        //    cursorSpriteImage.sprite = hoverCursorSprite;
+        //    return true;
+
+        //}
+        //else if (target == null && lastHoveredButton != null)
+        //{
+        //    ExecuteEvents.ExecuteHierarchy(lastHoveredButton, pointerData, ExecuteEvents.pointerExitHandler);
+        //    cursorSpriteImage.sprite = defaultCursorSprite;
+        //    lastHoveredButton = null;
+        //    return false;
+        //}
+        //return target != null;
     }
 }
 

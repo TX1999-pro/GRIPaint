@@ -5,11 +5,13 @@ using UnityEngine.UI;
 public class ColorPicker : MonoBehaviour
 {
     public Button[] colorButtons;
-    public Image whiteImage;
-    public static Color SelectedColor { get; private set; } = Color.black;
+    public PenBrush[] brushButtons;
+    public Image selectedColor;
+    public static Color m_SelectedColor { get; private set; } = Color.black;
 
     private void Start()
     {
+        selectedColor = GetComponentInChildren<Image>();
         foreach (Button button in colorButtons)
         {
             button.onClick.AddListener(() => SelectCurrentColor(button.image.color));
@@ -18,12 +20,21 @@ public class ColorPicker : MonoBehaviour
 
     public void SelectCurrentColor(Color color)
     {
-        SelectedColor = color;
-        UpdateWhiteImageColor();
+        m_SelectedColor = color;
+        UpdateSelectedColor();
+        UpdateBrushSprite();
     }
 
-    private void UpdateWhiteImageColor()
+    private void UpdateSelectedColor()
     {
-        whiteImage.color = SelectedColor;
+        selectedColor.color = m_SelectedColor;
+    }
+
+    private void UpdateBrushSprite()
+    {
+        foreach (PenBrush brush in brushButtons)
+        {
+            brush.GetComponentInChildren<Image>().color = m_SelectedColor;
+        }
     }
 }

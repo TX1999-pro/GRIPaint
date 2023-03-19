@@ -116,8 +116,8 @@ public class DrawingController : MonoBehaviour
         line.material = new Material(Shader.Find("Sprites/Default"));
         line.positionCount = 0;
 
-        line.startColor = ColorPicker.SelectedColor;
-        line.endColor = ColorPicker.SelectedColor;
+        line.startColor = ColorPicker.m_SelectedColor;
+        line.endColor = ColorPicker.m_SelectedColor;
 
         while (isDrawing)
         {
